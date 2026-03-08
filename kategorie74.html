@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kategorisierung: Präpositiv vs. Akkusativ</title>
+    <!-- Polyfill für Drag-and-Drop auf Touch-Geräten -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --prep-box: #d1ecf1;
+            --akk-box: #fff3cd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #eef2f7;
+            padding: 15px;
+            border-left: 5px solid var(--secondary-color);
+            border-radius: 5px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        /* Drag-Bereich */
+        .drag-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #ffffff;
+            padding: 20px;
+            border: 2px dashed #bbb;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            min-height: 100px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drag-item {
+            padding: 10px 18px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 25px;
+            cursor: grab;
+            user-select: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background 0.3s, transform 0.2s;
+            touch-action: none; /* Wichtig für Mobile-Polyfill */
+        }
+
+        .drag-item:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        /* Status-Farben */
+        .drag-item.correct { background-color: var(--success-color) !important; }
+        .drag-item.incorrect { background-color: var(--error-color) !important; }
+
+        /* Drop-Zonen Layout */
+        .drop-zones-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .drop-zone {
+            min-height: 250px;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .zone-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .zone-desc {
+            font-size: 0.8rem;
+            color: #555;
+            margin-bottom: 10px;
+            pointer-events: none;
+        }
+
+        .prep-zone { background-color: var(--prep-box); border-color: #bee5eb; }
+        .akk-zone { background-color: var(--akk-box); border-color: #ffeeba; }
+
+        .drop-zone.hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        /* Steuerungs-Buttons */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn-reset { background-color: #95a5a6; color: white; }
+        .btn-solution { background-color: #f39c12; color: white; }
+
+        button:hover { opacity: 0.9; }
+        button:active { transform: scale(0.98); }
+
+        /* Mobile Optimierung */
+        @media (max-width: 650px) {
+            .drop-zones-container { grid-template-columns: 1fr; }
+            .container { padding: 15px; }
+            h1 { font-size: 1.5rem; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kategorisierung: Russisch A1</h1>
+    
+    <div class="intro">
+        Sortieren Sie die Begriffe in die richtige Kategorie. 
+        Das Feedback erfolgt <strong>sofort</strong> beim Loslassen:<br>
+        🟢 <strong>Grün</strong> = Richtig platziert | 🔴 <strong>Rot</strong> = Falsche Kategorie.
+    </div>
+
+    <!-- Drag-Pool mit 20 Begriffen aus dem Unterrichtsmaterial -->
+    <div class="drag-pool" id="main-pool" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <div class="drag-item" draggable="true" id="it1" data-ans="prep" ondragstart="handleDragStart(event)">в школе</div>
+        <div class="drag-item" draggable="true" id="it2" data-ans="akk" ondragstart="handleDragStart(event)">в футбол</div>
+        <div class="drag-item" draggable="true" id="it3" data-ans="prep" ondragstart="handleDragStart(event)">на гитаре</div>
+        <div class="drag-item" draggable="true" id="it4" data-ans="akk" ondragstart="handleDragStart(event)">в теннис</div>
+        <div class="drag-item" draggable="true" id="it5" data-ans="prep" ondragstart="handleDragStart(event)">в Москве</div>
+        <div class="drag-item" draggable="true" id="it6" data-ans="akk" ondragstart="handleDragStart(event)">книгу</div>
+        <div class="drag-item" draggable="true" id="it7" data-ans="prep" ondragstart="handleDragStart(event)">о книге</div>
+        <div class="drag-item" draggable="true" id="it8" data-ans="prep" ondragstart="handleDragStart(event)">на диете</div>
+        <div class="drag-item" draggable="true" id="it9" data-ans="akk" ondragstart="handleDragStart(event)">в баскетбол</div>
+        <div class="drag-item" draggable="true" id="it10" data-ans="prep" ondragstart="handleDragStart(event)">в офисе</div>
+        <div class="drag-item" draggable="true" id="it11" data-ans="prep" ondragstart="handleDragStart(event)">о путешествии</div>
+        <div class="drag-item" draggable="true" id="it12" data-ans="akk" ondragstart="handleDragStart(event)">подругу</div>
+        <div class="drag-item" draggable="true" id="it13" data-ans="prep" ondragstart="handleDragStart(event)">на полке</div>
+        <div class="drag-item" draggable="true" id="it14" ondragstart="handleDragStart(event)" data-ans="prep">в институте</div>
+        <div class="drag-item" draggable="true" id="it15" data-ans="prep" ondragstart="handleDragStart(event)">на пианино</div>
+        <div class="drag-item" draggable="true" id="it16" data-ans="akk" ondragstart="handleDragStart(event)">в Россию</div>
+        <div class="drag-item" draggable="true" id="it17" data-ans="prep" ondragstart="handleDragStart(event)">о маме</div>
+        <div class="drag-item" draggable="true" id="it18" data-ans="akk" ondragstart="handleDragStart(event)">в хоккей</div>
+        <div class="drag-item" draggable="true" id="it19" data-ans="prep" ondragstart="handleDragStart(event)">на диване</div>
+        <div class="drag-item" draggable="true" id="it20" data-ans="prep" ondragstart="handleDragStart(event)">о друге</div>
+    </div>
+
+    <div class="drop-zones-container">
+        <!-- Präpositiv Zone -->
+        <div class="drop-zone prep-zone" id="zone-prep" data-type="prep" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <div class="zone-title">Präpositiv (Предложный)</div>
+            <div class="zone-desc">Ort (Wo?), Thema (Über wen/was?), Instrument</div>
+        </div>
+
+        <!-- Akkusativ Zone -->
+        <div class="drop-zone akk-zone" id="zone-akk" data-type="akk" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <div class="zone-title">Akkusativ (Винительный)</div>
+            <div class="zone-desc">Sportarten, Direktes Objekt (Wen/Was?)</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetGame()">Zurücksetzen</button>
+        <button class="btn-solution" onclick="showSolution()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Drag & Drop Kern-Logik
+    function handleDragStart(ev) {
+        ev.dataTransfer.setData("text/plain", ev.target.id);
+    }
+
+    function handleDragOver(ev) {
+        ev.preventDefault();
+        const zone = ev.target.closest('.drop-zone');
+        if (zone) zone.classList.add('hover');
+    }
+
+    function handleDragLeave(ev) {
+        const zone = ev.target.closest('.drop-zone');
+        if (zone) zone.classList.remove('hover');
+    }
+
+    function handleDrop(ev) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("text/plain");
+        const draggedElement = document.getElementById(id);
+        const dropZone = ev.target.closest('.drop-zone') || ev.target.closest('.drag-pool');
+
+        if (!dropZone || !draggedElement) return;
+
+        // Element verschieben
+        dropZone.appendChild(draggedElement);
+        
+        // Hover-Effekt entfernen
+        if (dropZone.classList.contains('drop-zone')) {
+            dropZone.classList.remove('hover');
+        }
+
+        // Sofortige Validierung
+        validate(draggedElement, dropZone);
+    }
+
+    function validate(item, zone) {
+        const expected = item.getAttribute('data-ans');
+        const actual = zone.getAttribute('data-type'); // 'prep', 'akk' oder null (im Pool)
+
+        if (!actual) { 
+            // Element ist zurück im Start-Pool
+            item.classList.remove('correct', 'incorrect');
+        } else if (expected === actual) {
+            item.classList.add('correct');
+            item.classList.remove('incorrect');
+        } else {
+            item.classList.add('incorrect');
+            item.classList.remove('correct');
+        }
+    }
+
+    // Button-Funktionen
+    function resetGame() {
+        const pool = document.getElementById('main-pool');
+        const items = document.querySelectorAll('.drag-item');
+        
+        items.forEach(item => {
+            item.classList.remove('correct', 'incorrect');
+            pool.appendChild(item);
+        });
+    }
+
+    function showSolution() {
+        const items = document.querySelectorAll('.drag-item');
+        
+        items.forEach(item => {
+            const answer = item.getAttribute('data-ans');
+            const targetZone = document.querySelector(`.drop-zone[data-type="${answer}"]`);
+            
+            targetZone.appendChild(item);
+            item.classList.add('correct');
+            item.classList.remove('incorrect');
+        });
+    }
+</script>
+
+</body>
+</html>
