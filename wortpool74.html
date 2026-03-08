@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wort-Pool: Ein Tag mit Ira</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --border: #dcdde1;
+            --highlight: #e1f5fe;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 { text-align: center; color: var(--primary); }
+
+        .intro {
+            background: #eef2f3;
+            padding: 15px;
+            border-left: 5px solid var(--secondary);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        /* Textbereich mit Lücken */
+        .story-box {
+            line-height: 2.2;
+            font-size: 1.15rem;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 100px;
+            height: 30px;
+            border-bottom: 2px solid var(--secondary);
+            margin: 0 5px;
+            padding: 0 10px;
+            text-align: center;
+            vertical-align: bottom;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .gap:hover {
+            background-color: var(--highlight);
+        }
+
+        .gap.correct {
+            border-bottom-color: var(--success);
+            color: var(--success);
+        }
+
+        .gap.incorrect {
+            border-bottom-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Wort-Pool Bereich */
+        .pool-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .pool-word {
+            padding: 8px 15px;
+            background: var(--primary);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .pool-word:hover {
+            opacity: 0.9;
+        }
+
+        .pool-word.selected {
+            background: var(--secondary);
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .pool-word.used {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background: #95a5a6; color: white; }
+        .btn-solve { background: #f39c12; color: white; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .story-box { font-size: 1rem; line-height: 2.5; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Wort-Pool: Click-to-Fill</h1>
+    
+    <div class="intro">
+        Vervollständigen Sie den Text über Iras Tag. 
+        <br><strong>Anleitung:</strong> Klicken Sie zuerst auf ein Wort im Pool und danach auf die passende Lücke im Text. 
+        Das Feedback erfolgt <strong>sofort</strong>.
+    </div>
+
+    <div class="story-box">
+        Привет! Меня зовут Ира. Я живу 
+        <span class="gap" id="gap-1" data-ans="в Москве" onclick="fillGap(this)"></span>. 
+        Я учусь 
+        <span class="gap" id="gap-2" data-ans="в университете" onclick="fillGap(this)"></span>. 
+        Я часто думаю 
+        <span class="gap" id="gap-3" data-ans="о подруге" onclick="fillGap(this)"></span>. 
+        Сегодня мы с друзьями играем 
+        <span class="gap" id="gap-4" data-ans="в футбол" onclick="fillGap(this)"></span>. 
+        А вечером я играю 
+        <span class="gap" id="gap-5" data-ans="на гитаре" onclick="fillGap(this)"></span>. 
+        Мои книги лежат 
+        <span class="gap" id="gap-6" data-ans="на полке" onclick="fillGap(this)"></span>. 
+        Я часто мечтаю 
+        <span class="gap" id="gap-7" data-ans="о путешествии" onclick="fillGap(this)"></span>. 
+        Мой папа работает 
+        <span class="gap" id="gap-8" data-ans="в офисе" onclick="fillGap(this)"></span>. 
+        Сейчас он отдыхает и сидит 
+        <span class="gap" id="gap-9" data-ans="на диване" onclick="fillGap(this)"></span>. 
+        Кстати, моя мама сейчас сидит 
+        <span class="gap" id="gap-10" data-ans="на диете" onclick="fillGap(this)"></span>.
+    </div>
+
+    <span class="pool-title">Wort-Pool:</span>
+    <div class="word-pool" id="pool">
+        <!-- Wörter werden per JS geladen, um sie zu mischen -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const poolWords = [
+        "в Москве", "в университете", "о подруге", "в футбол", "на гитаре", 
+        "на полке", "о путешествии", "в офисе", "на диване", "на диете"
+    ];
+
+    let selectedWord = null;
+    let selectedElement = null;
+
+    // Pool initialisieren und mischen
+    function initPool() {
+        const poolContainer = document.getElementById('pool');
+        poolContainer.innerHTML = '';
+        
+        const shuffled = [...poolWords].sort(() => Math.random() - 0.5);
+        
+        shuffled.forEach(word => {
+            const span = document.createElement('span');
+            span.className = 'pool-word';
+            span.innerText = word;
+            span.onclick = () => selectWord(span);
+            poolContainer.appendChild(span);
+        });
+    }
+
+    function selectWord(element) {
+        // Vorherige Auswahl entfernen
+        document.querySelectorAll('.pool-word').forEach(el => el.classList.remove('selected'));
+        
+        if (selectedElement === element) {
+            selectedWord = null;
+            selectedElement = null;
+        } else {
+            selectedWord = element.innerText;
+            selectedElement = element;
+            element.classList.add('selected');
+        }
+    }
+
+    function fillGap(gapElement) {
+        if (!selectedWord) return;
+
+        // Falls die Lücke bereits korrekt war, nichts tun
+        if (gapElement.classList.contains('correct')) return;
+
+        gapElement.innerText = selectedWord;
+        const answer = gapElement.getAttribute('data-ans');
+
+        if (selectedWord === answer) {
+            gapElement.classList.add('correct');
+            gapElement.classList.remove('incorrect');
+            selectedElement.classList.add('used');
+            selectedWord = null;
+            selectedElement = null;
+        } else {
+            gapElement.classList.add('incorrect');
+            gapElement.classList.remove('correct');
+            // Bei falscher Antwort bleibt das Wort im Pool wählbar
+        }
+    }
+
+    function resetAll() {
+        document.querySelectorAll('.gap').forEach(gap => {
+            gap.innerText = '';
+            gap.className = 'gap';
+        });
+        selectedWord = null;
+        selectedElement = null;
+        initPool();
+    }
+
+    function showSolution() {
+        document.querySelectorAll('.gap').forEach(gap => {
+            const ans = gap.getAttribute('data-ans');
+            gap.innerText = ans;
+            gap.className = 'gap correct';
+        });
+        document.querySelectorAll('.pool-word').forEach(word => {
+            word.classList.add('used');
+            word.classList.remove('selected');
+        });
+        selectedWord = null;
+        selectedElement = null;
+    }
+
+    // Start
+    initPool();
+</script>
+
+</body>
+</html>
