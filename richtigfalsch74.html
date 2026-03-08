@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Richtig oder Falsch? – Russisch A1</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f0f3f5;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .intro-screen, .quiz-screen, .result-screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        h1 { margin-bottom: 10px; }
+        
+        .instruction {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Satz-Display */
+        .sentence-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 30px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        /* Timer-Balken */
+        .timer-container {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--secondary);
+            transition: width 0.1s linear;
+        }
+
+        /* Buttons */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-choice {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn-correct { background-color: var(--success); }
+        .btn-incorrect { background-color: var(--error); }
+        
+        .btn-choice:active { transform: scale(0.95); }
+        .btn-choice:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Feedback */
+        .feedback-area {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            min-height: 50px;
+            font-weight: bold;
+        }
+
+        .correct-text { color: var(--success); }
+        .wrong-text { color: var(--error); }
+
+        .btn-control {
+            margin-top: 20px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #95a5a6;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 500px) {
+            .sentence-display { font-size: 1.4rem; }
+            .btn-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- START BILDSCHIRM -->
+    <div id="intro-screen" class="intro-screen active">
+        <h1>Grammatik-Challenge</h1>
+        <p class="instruction">
+            Automatisieren Sie Ihr Wissen! Entscheiden Sie bei jedem Satz: Ist er <b>grammatikalisch richtig</b> oder <b>falsch</b>? 
+            Sie haben 7 Sekunden pro Satz!
+        </p>
+        <button class="btn-control" onclick="startQuiz()">Spiel starten</button>
+    </div>
+
+    <!-- QUIZ BILDSCHIRM -->
+    <div id="quiz-screen" class="quiz-screen">
+        <div class="progress-text" id="progress">Frage 1 / 20</div>
+        <div class="timer-container">
+            <div id="timer-bar" class="timer-bar"></div>
+        </div>
+        <div class="sentence-display" id="sentence-display"></div>
+        
+        <div class="btn-grid">
+            <button class="btn-choice btn-correct" id="btn-true" onclick="handleAnswer(true)">RICHTIG</button>
+            <button class="btn-choice btn-incorrect" id="btn-false" onclick="handleAnswer(false)">FALSCH</button>
+        </div>
+
+        <div class="feedback-area" id="feedback-area"></div>
+        <button id="btn-next" class="btn-control" style="display:none;" onclick="nextQuestion()">Nächster Satz</button>
+    </div>
+
+    <!-- ERGEBNIS BILDSCHIRM -->
+    <div id="result-screen" class="result-screen">
+        <h1>Ergebnis</h1>
+        <p id="score-text" style="font-size: 1.5rem;"></p>
+        <button class="btn-control" onclick="resetQuiz()">Nochmal versuchen</button>
+        <div id="correction-list" style="text-align: left; margin-top: 20px; font-size: 0.9rem;"></div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { s: "Я живу в Москве.", isCorrect: true, note: "Korrekt: 'в' + Präpositiv für Orte." },
+        { s: "Мы думаем в лете.", isCorrect: false, note: "Falsch: Denken an/über etwas = 'о' + Präpositiv." },
+        { s: "Он играет на гитаре.", isCorrect: true, note: "Korrekt: Musikinstrumente mit 'на'." },
+        { s: "Дети играют на футбол.", isCorrect: false, note: "Falsch: Sportarten mit 'в' + Akkusativ." },
+        { s: "Книга лежит на полке.", isCorrect: true, note: "Korrekt: Präpositiv von 'полка'." },
+        { s: "Я мечтаю в собаке.", isCorrect: false, note: "Falsch: Träumen von etwas = 'о' + Präpositiv." },
+        { s: "МГУ находится в Москве.", isCorrect: true, note: "Korrekt." },
+        { s: "Мама сидит в диете.", isCorrect: false, note: "Falsch: Ausdruck ist 'на диете'." },
+        { s: "Студент учится в институте.", isCorrect: true, note: "Korrekt." },
+        { s: "Папа работает на офисе.", isCorrect: false, note: "Falsch: Gebäude/Büros meist mit 'в'." },
+        { s: "Я вспоминаю о подруге.", isCorrect: true, note: "Korrekt: Erinnern (Thema) mit 'о'." },
+        { s: "Я вспоминаю подругу.", isCorrect: true, note: "Korrekt: Erinnern (direktes Objekt) im Akkusativ." },
+        { s: "Анна играет в пианино.", isCorrect: false, note: "Falsch: Instrumente mit 'на'." },
+        { s: "Телефон лежит в сумке.", isCorrect: true, note: "Korrekt." },
+        { s: "Они сидят в диване.", isCorrect: false, note: "Falsch: Auf dem Sofa sitzen = 'на диване'." },
+        { s: "Мы спрашиваем о книге.", isCorrect: true, note: "Korrekt." },
+        { s: "Брат учится в школе.", isCorrect: true, note: "Korrekt." },
+        { s: "Москва находится на России.", isCorrect: false, note: "Falsch: Länder mit 'в'." },
+        { s: "Играть в теннис.", isCorrect: true, note: "Korrekt: Sport mit 'в'." },
+        { s: "Книга на столе.", isCorrect: true, note: "Korrekt." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let timer;
+    let timeLeft;
+    const timeLimit = 70; // 7 Sekunden (in 0.1s Schritten)
+
+    function startQuiz() {
+        document.getElementById('intro-screen').classList.remove('active');
+        document.getElementById('quiz-screen').classList.add('active');
+        currentIdx = 0;
+        score = 0;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentIdx >= questions.length) {
+            showResults();
+            return;
+        }
+
+        const q = questions[currentIdx];
+        document.getElementById('progress').innerText = `Satz ${currentIdx + 1} / ${questions.length}`;
+        document.getElementById('sentence-display').innerText = q.s;
+        document.getElementById('feedback-area').innerText = "";
+        document.getElementById('btn-next').style.display = "none";
+        document.getElementById('btn-true').disabled = false;
+        document.getElementById('btn-false').disabled = false;
+
+        timeLeft = timeLimit;
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        const bar = document.getElementById('timer-bar');
+        timer = setInterval(() => {
+            timeLeft--;
+            bar.style.width = (timeLeft / timeLimit) * 100 + "%";
+            if (timeLeft <= 0) {
+                handleAnswer(null); // Zeit abgelaufen
+            }
+        }, 100);
+    }
+
+    function handleAnswer(choice) {
+        clearInterval(timer);
+        document.getElementById('btn-true').disabled = true;
+        document.getElementById('btn-false').disabled = true;
+
+        const q = questions[currentIdx];
+        const feedback = document.getElementById('feedback-area');
+        const isCorrectChoice = (choice === q.isCorrect);
+
+        if (choice === null) {
+            feedback.innerHTML = `<span class="wrong-text">Zeit abgelaufen!</span><br><small>${q.note}</small>`;
+        } else if (isCorrectChoice) {
+            feedback.innerHTML = `<span class="correct-text">Richtig!</span><br><small>${q.note}</small>`;
+            score++;
+        } else {
+            feedback.innerHTML = `<span class="wrong-text">Falsch!</span><br><small>${q.note}</small>`;
+        }
+
+        document.getElementById('btn-next').style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        showQuestion();
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+        document.getElementById('score-text').innerText = `${score} von ${questions.length} Punkten`;
+        
+        let corrections = "<strong>Zusammenfassung:</strong><br>";
+        questions.forEach(q => {
+            corrections += `${q.isCorrect ? '✅' : '❌'} ${q.s} <br>`;
+        });
+        document.getElementById('correction-list').innerHTML = corrections;
+    }
+
+    function resetQuiz() {
+        document.getElementById('result-screen').classList.remove('active');
+        document.getElementById('intro-screen').classList.add('active');
+    }
+</script>
+
+</body>
+</html>
