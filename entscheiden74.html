@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entscheidungs-Matrix: Russische Verben</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --border: #dcdde1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 { text-align: center; color: var(--primary); }
+
+        .intro {
+            background: #eef2f7;
+            padding: 15px;
+            border-left: 5px solid var(--secondary);
+            border-radius: 5px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto; /* Wichtig für Responsivität auf Smartphones */
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: bold;
+            background-color: #fdfdfd;
+        }
+
+        /* Checkbox-Styling */
+        .cell-check {
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            accent-color: var(--secondary);
+        }
+
+        /* Feedback-Farben für die Zellen */
+        td.correct { background-color: #eafaf1 !important; }
+        td.incorrect { background-color: #fdedec !important; }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-reset { background-color: #95a5a6; color: white; }
+        .btn-solution { background-color: #f39c12; color: white; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            h1 { font-size: 1.4rem; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Grammatik-Matrix: Verben & Fälle</h1>
+    
+    <div class="intro">
+        Welche Fälle können mit diesen Verben verwendet werden? Markieren Sie die zutreffenden Spalten. 
+        Feedback erfolgt <strong>sofort</strong> (Grün = Richtig, Rot = Falsch).
+    </div>
+
+    <div class="table-wrapper">
+        <table id="verb-matrix">
+            <thead>
+                <tr>
+                    <th>Verb</th>
+                    <th>Präpositiv<br><small>(о ком / где)</small></th>
+                    <th>Akkusativ<br><small>(кого / во что)</small></th>
+                </tr>
+            </thead>
+            <tbody id="matrix-body">
+                <!-- JS generiert Zeilen -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetMatrix()">Zurücksetzen</button>
+        <button class="btn-solution" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Definition der Verben und ihrer korrekten Fälle (P = Präpositiv, A = Akkusativ)
+    const verbsData = [
+        { name: "вспоминать", p: true, a: true },
+        { name: "думать", p: true, a: false },
+        { name: "жить", p: true, a: false },
+        { name: "играть", p: true, a: true },
+        { name: "лежать", p: true, a: false },
+        { name: "мечтать", p: true, a: false },
+        { name: "находиться", p: true, a: false },
+        { name: "сидеть", p: true, a: false },
+        { name: "спрашивать", p: true, a: true },
+        { name: "учиться", p: true, a: false },
+        { name: "работать", p: true, a: false },
+        { name: "говорить", p: true, a: false },
+        { name: "рассказывать", p: true, a: false },
+        { name: "знать", p: true, a: true },
+        { name: "писать", p: true, a: false }
+    ];
+
+    const tbody = document.getElementById('matrix-body');
+
+    // Matrix aufbauen
+    verbsData.forEach((verb, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${verb.name}</td>
+            <td id="cell-${index}-p">
+                <input type="checkbox" class="cell-check" onchange="validate(${index}, 'p')" id="check-${index}-p">
+            </td>
+            <td id="cell-${index}-a">
+                <input type="checkbox" class="cell-check" onchange="validate(${index}, 'a')" id="check-${index}-a">
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    function validate(verbIndex, type) {
+        const checkbox = document.getElementById(`check-${verbIndex}-${type}`);
+        const cell = document.getElementById(`cell-${verbIndex}-${type}`);
+        const isCorrectCase = verbsData[verbIndex][type];
+
+        // Wenn angeklickt:
+        if (checkbox.checked) {
+            if (isCorrectCase) {
+                cell.className = "correct";
+            } else {
+                cell.className = "incorrect";
+            }
+        } else {
+            // Wenn abgewählt:
+            cell.className = "";
+        }
+    }
+
+    function resetMatrix() {
+        verbsData.forEach((_, index) => {
+            const cp = document.getElementById(`check-${index}-p`);
+            const ca = document.getElementById(`check-${index}-a`);
+            cp.checked = false;
+            ca.checked = false;
+            document.getElementById(`cell-${index}-p`).className = "";
+            document.getElementById(`cell-${index}-a`).className = "";
+        });
+    }
+
+    function showSolution() {
+        verbsData.forEach((verb, index) => {
+            const cp = document.getElementById(`check-${index}-p`);
+            const ca = document.getElementById(`check-${index}-a`);
+            const cellP = document.getElementById(`cell-${index}-p`);
+            const cellA = document.getElementById(`cell-${index}-a`);
+
+            cp.checked = verb.p;
+            ca.checked = verb.a;
+
+            cellP.className = verb.p ? "correct" : "";
+            cellA.className = verb.a ? "correct" : "";
+            
+            // Markiere explizit Zellen, die falsch wären, wenn sie angewählt wären
+            if (!verb.p) cellP.className = ""; 
+            if (!verb.a) cellA.className = "";
+        });
+    }
+</script>
+
+</body>
+</html>
