@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fehler-Detektiv: Russisch A1</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+        
+        .intro {
+            background: #eef2f3;
+            padding: 15px;
+            border-left: 5px solid var(--secondary);
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .exercise-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .task-info {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .sentence-box {
+            font-size: 1.3rem;
+            line-height: 2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .word {
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px transparent;
+            user-select: none;
+        }
+
+        .word:hover {
+            background-color: #f0f0f0;
+            color: var(--secondary);
+        }
+
+        /* Status-Farben */
+        .word.wrong-pick {
+            background-color: #fdedec;
+            color: var(--error);
+            border-bottom: 2px solid var(--error);
+        }
+
+        .word.correct-pick {
+            background-color: #eafaf1;
+            color: var(--success);
+            border-bottom: 2px solid var(--success);
+            font-weight: bold;
+        }
+
+        .correction-box {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            background-color: #eafaf1;
+            border: 1px solid var(--success);
+            color: var(--primary);
+        }
+
+        .correction-box b { color: var(--success); }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #95a5a6; color: white; }
+        .btn-solution { background-color: #f39c12; color: white; }
+        button:hover { opacity: 0.8; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .sentence-box { font-size: 1.1rem; }
+            .controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Fehler-Detektiv</h1>
+    
+    <div class="intro">
+        In jedem Satz ist <b>ein Wort</b> falsch (Präposition oder Endung). 
+        Klicken Sie auf das falsche Wort, um es zu markieren und die Korrektur zu sehen.
+    </div>
+
+    <div id="exercise-list">
+        <!-- JS generiert die Sätze hier -->
+    </div>
+</div>
+
+<script>
+    const exercises = [
+        {
+            sentence: "Я живу на Москве.",
+            errorIndex: 2, // "на"
+            correction: "Я живу <b>в</b> Москве."
+        },
+        {
+            sentence: "Анна играет в гитаре.",
+            errorIndex: 2, // "в"
+            correction: "Анна играет <b>на</b> гитаре."
+        },
+        {
+            sentence: "Иван играет на футбол.",
+            errorIndex: 2, // "на"
+            correction: "Иван играет <b>в</b> футбол."
+        },
+        {
+            sentence: "Мы думаем в отпуске.",
+            errorIndex: 2, // "в"
+            correction: "Мы думаем <b>о</b> отпуске."
+        },
+        {
+            sentence: "Книга лежит на полку.",
+            errorIndex: 3, // "полку"
+            correction: "Книга лежит на <b>полке</b> (Präpositiv)."
+        },
+        {
+            sentence: "Я вспоминаю подруге.",
+            errorIndex: 2, // "подруге"
+            correction: "Я вспоминаю <b>подругу</b> (Akkusativ)."
+        },
+        {
+            sentence: "Мама сидит в диете.",
+            errorIndex: 2, // "в"
+            correction: "Мама сидит <b>на</b> диете."
+        },
+        {
+            sentence: "МГУ находится на Москве.",
+            errorIndex: 3, // "на"
+            correction: "МГУ находится <b>в</b> Москве."
+        },
+        {
+            sentence: "Студент учится на институте.",
+            errorIndex: 2, // "на"
+            correction: "Студент учится <b>в</b> институте."
+        },
+        {
+            sentence: "Мы мечтаем в собаке.",
+            errorIndex: 2, // "в"
+            correction: "Мы мечтаем <b>о</b> собаке."
+        }
+    ];
+
+    const listContainer = document.getElementById('exercise-list');
+
+    function renderExercises() {
+        listContainer.innerHTML = '';
+        exercises.forEach((ex, exIndex) => {
+            const words = ex.sentence.split(' ');
+            const item = document.createElement('div');
+            item.className = 'exercise-item';
+            item.id = `ex-${exIndex}`;
+
+            let wordsHtml = words.map((word, wIndex) => 
+                `<span class="word" onclick="checkWord(${exIndex}, ${wIndex}, ${ex.errorIndex})">${word}</span>`
+            ).join('');
+
+            item.innerHTML = `
+                <span class="task-info">Satz ${exIndex + 1}</span>
+                <div class="sentence-box">${wordsHtml}</div>
+                <div class="correction-box" id="corr-${exIndex}">
+                    Richtig: ${ex.correction}
+                </div>
+                <div class="controls">
+                    <button class="btn-reset" onclick="resetOne(${exIndex})">Zurücksetzen</button>
+                    <button class="btn-solution" onclick="showSolution(${exIndex})">Lösung anzeigen</button>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+
+    window.checkWord = function(exIdx, wIdx, errIdx) {
+        const container = document.getElementById(`ex-${exIdx}`);
+        const words = container.querySelectorAll('.word');
+        const corrBox = document.getElementById(`corr-${exIdx}`);
+
+        // Alles vorherige entfernen
+        words.forEach(w => w.classList.remove('wrong-pick', 'correct-pick'));
+
+        if (wIdx === errIdx) {
+            words[wIdx].classList.add('correct-pick');
+            corrBox.style.display = 'block';
+        } else {
+            words[wIdx].classList.add('wrong-pick');
+            corrBox.style.display = 'none';
+        }
+    };
+
+    window.resetOne = function(exIdx) {
+        const container = document.getElementById(`ex-${exIdx}`);
+        const words = container.querySelectorAll('.word');
+        const corrBox = document.getElementById(`corr-${exIdx}`);
+        
+        words.forEach(w => w.classList.remove('wrong-pick', 'correct-pick'));
+        corrBox.style.display = 'none';
+    };
+
+    window.showSolution = function(exIdx) {
+        const container = document.getElementById(`ex-${exIdx}`);
+        const errIdx = exercises[exIdx].errorIndex;
+        const words = container.querySelectorAll('.word');
+        const corrBox = document.getElementById(`corr-${exIdx}`);
+
+        words.forEach(w => w.classList.remove('wrong-pick'));
+        words[errIdx].classList.add('correct-pick');
+        corrBox.style.display = 'block';
+    };
+
+    renderExercises();
+</script>
+
+</body>
+</html>
