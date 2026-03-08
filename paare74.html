@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zuordnung: Verben und Ergänzungen</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --border: #dcdde1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 { text-align: center; }
+
+        .intro {
+            background: #eef2f3;
+            padding: 15px;
+            border-left: 5px solid var(--secondary);
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+
+        /* Layout der Zuordnung */
+        .matching-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .verb-label {
+            background: #eee;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .drop-slot {
+            border: 2px dashed #bbb;
+            border-radius: 8px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fafafa;
+            transition: all 0.3s;
+        }
+
+        .drop-slot.hover {
+            border-color: var(--secondary);
+            background: #e1f5fe;
+        }
+
+        /* Drag-Items Pool */
+        .item-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            min-height: 80px;
+            justify-content: center;
+        }
+
+        .drag-item {
+            padding: 10px 15px;
+            background: var(--primary);
+            color: white;
+            border-radius: 6px;
+            cursor: grab;
+            user-select: none;
+            font-size: 0.95rem;
+            touch-action: none;
+            transition: background 0.3s;
+        }
+
+        .drag-item.correct { background-color: var(--success) !important; }
+        .drag-item.incorrect { background-color: var(--error) !important; }
+
+        /* Buttons */
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background: #95a5a6; color: white; }
+        .btn-solution { background: #f39c12; color: white; }
+        button:hover { opacity: 0.8; }
+
+        @media (max-width: 600px) {
+            .matching-grid { grid-template-columns: 1fr; }
+            .verb-label { justify-content: center; text-align: center; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik: Matching</h1>
+    
+    <div class="intro">
+        Ordnen Sie die Ergänzungen den richtigen Verben zu. Ziehen Sie die Kacheln in die grauen Felder. 
+        Feedback erfolgt <strong>sofort</strong> beim Ablegen.
+    </div>
+
+    <div class="item-pool" id="pool" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+        <!-- Ergänzungen werden hier gemischt geladen -->
+        <div class="drag-item" draggable="true" id="ans-8" ondragstart="handleDragStart(event)">на гитаре</div>
+        <div class="drag-item" draggable="true" id="ans-2" ondragstart="handleDragStart(event)">в хоккей</div>
+        <div class="drag-item" draggable="true" id="ans-5" ondragstart="handleDragStart(event)">о собаке</div>
+        <div class="drag-item" draggable="true" id="ans-1" ondragstart="handleDragStart(event)">о лете</div>
+        <div class="drag-item" draggable="true" id="ans-10" ondragstart="handleDragStart(event)">подругу</div>
+        <div class="drag-item" draggable="true" id="ans-3" ondragstart="handleDragStart(event)">в банке</div>
+        <div class="drag-item" draggable="true" id="ans-9" ondragstart="handleDragStart(event)">на диете</div>
+        <div class="drag-item" draggable="true" id="ans-6" ondragstart="handleDragStart(event)">о друге</div>
+        <div class="drag-item" draggable="true" id="ans-4" ondragstart="handleDragStart(event)">в России</div>
+        <div class="drag-item" draggable="true" id="ans-7" ondragstart="handleDragStart(event)">в школе</div>
+    </div>
+
+    <div class="matching-grid">
+        <div class="verb-label">думать</div>
+        <div class="drop-slot" id="slot-1" data-match="ans-1" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">играть (спорт)</div>
+        <div class="drop-slot" id="slot-2" data-match="ans-2" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">работать</div>
+        <div class="drop-slot" id="slot-3" data-match="ans-3" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">жить</div>
+        <div class="drop-slot" id="slot-4" data-match="ans-4" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">мечтать</div>
+        <div class="drop-slot" id="slot-5" data-match="ans-5" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">спросить</div>
+        <div class="drop-slot" id="slot-6" data-match="ans-6" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">учиться</div>
+        <div class="drop-slot" id="slot-7" data-match="ans-7" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">играть (музыка)</div>
+        <div class="drop-slot" id="slot-8" data-match="ans-8" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">сидеть</div>
+        <div class="drop-slot" id="slot-9" data-match="ans-9" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+
+        <div class="verb-label">вспоминать</div>
+        <div class="drop-slot" id="slot-10" data-match="ans-10" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    function handleDragStart(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function handleDragOver(ev) {
+        ev.preventDefault();
+        const slot = ev.target.closest('.drop-slot') || ev.target.closest('.item-pool');
+        if (slot && slot.classList.contains('drop-slot')) {
+            slot.classList.add('hover');
+        }
+    }
+
+    function handleDragLeave(ev) {
+        const slot = ev.target.closest('.drop-slot');
+        if (slot) slot.classList.remove('hover');
+    }
+
+    function handleDrop(ev) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("text");
+        const draggedElement = document.getElementById(id);
+        const dropZone = ev.target.closest('.drop-slot') || ev.target.closest('.item-pool');
+
+        if (!dropZone || !draggedElement) return;
+
+        // Falls der Slot schon besetzt ist, altes Item zurück in den Pool (optional)
+        if (dropZone.classList.contains('drop-slot') && dropZone.children.length > 0) {
+            document.getElementById('pool').appendChild(dropZone.children[0]);
+        }
+
+        dropZone.appendChild(draggedElement);
+        if (dropZone.classList.contains('drop-slot')) dropZone.classList.remove('hover');
+
+        validate(draggedElement, dropZone);
+    }
+
+    function validate(item, zone) {
+        const matchId = zone.getAttribute('data-match');
+        if (!matchId) {
+            // Im Pool: Neutral
+            item.classList.remove('correct', 'incorrect');
+        } else if (item.id === matchId) {
+            item.classList.add('correct');
+            item.classList.remove('incorrect');
+        } else {
+            item.classList.add('incorrect');
+            item.classList.remove('correct');
+        }
+    }
+
+    function resetAll() {
+        const pool = document.getElementById('pool');
+        const items = document.querySelectorAll('.drag-item');
+        items.forEach(item => {
+            item.classList.remove('correct', 'incorrect');
+            pool.appendChild(item);
+        });
+    }
+
+    function showAllSolutions() {
+        const slots = document.querySelectorAll('.drop-slot');
+        slots.forEach(slot => {
+            const matchId = slot.getAttribute('data-match');
+            const item = document.getElementById(matchId);
+            slot.appendChild(item);
+            item.classList.add('correct');
+            item.classList.remove('incorrect');
+        });
+    }
+</script>
+
+</body>
+</html>
