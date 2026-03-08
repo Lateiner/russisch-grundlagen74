@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch-Assistent: Verben & Fälle</title>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f9;
+            --white: #ffffff;
+            --border: #dcdde1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        h1, h2 { text-align: center; color: var(--primary); }
+        
+        .intro-box {
+            background: #f0f4f8;
+            padding: 20px;
+            border-left: 6px solid var(--secondary);
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .exercise-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .exercise-header {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .sentence {
+            font-size: 1.15rem;
+            line-height: 2.2;
+            margin-bottom: 15px;
+        }
+
+        select {
+            padding: 6px 10px;
+            font-size: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background-color: #fff;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        select.correct {
+            border-color: var(--success);
+            background-color: #eafaf1;
+            color: var(--success);
+        }
+
+        select.incorrect {
+            border-color: var(--error);
+            background-color: #fdedec;
+            color: var(--error);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #bdc3c7; color: #fff; }
+        .btn-solve { background-color: #f39c12; color: #fff; }
+        button:hover { opacity: 0.9; }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .button-group { flex-direction: column; }
+            select { width: 100%; margin: 5px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik</h1>
+    <h2>Verben und ihre Fälle (A1)</h2>
+
+    <div class="intro-box">
+        <strong>Kurzanleitung:</strong> Wählen Sie die richtige Form aus dem Dropdown-Menü aus. 
+        Das Feld markiert sich sofort <strong>grün</strong> bei Erfolg oder <strong>rot</strong> bei einem Fehler. 
+        Die Aufgaben beziehen sich auf den Präpositiv (Ort/Thema) und den Akkusativ (Sport/Direktes Objekt).
+    </div>
+
+    <div id="exercise-container"></div>
+</div>
+
+<script>
+    const quizData = [
+        { q: "Я живу ...", options: ["в Москве", "в Москву", "на Москве"], ans: "в Москве" },
+        { q: "Мы думаем ...", options: ["о путешествие", "о путешествии", "в путешествии"], ans: "о путешествии" },
+        { q: "Ирина играет ...", options: ["на гитаре", "в гитару", "о гитаре"], ans: "на гитаре" },
+        { q: "Антон играет ...", options: ["на футбол", "в футболе", "в футбол"], ans: "в football" }, // Correcting for key match
+        { q: "Книга лежит ...", options: ["на полку", "на полке", "в полку"], ans: "на полке" },
+        { q: "Я мечтаю ...", options: ["о собаке", "о собаку", "в собаке"], ans: "о собаке" },
+        { q: "МГУ находится ...", options: ["на Москве", "в Москву", "в Москве"], ans: "в Москве" },
+        { q: "Студенты сидят ...", options: ["на стуле", "на стул", "в стуле"], ans: "на стуле" },
+        { q: "Мама сидит ...", options: ["в диете", "на диете", "на диету"], ans: "на диете" },
+        { q: "Мы спрашиваем преподавателя ...", options: ["о книге", "о книгу", "в книге"], ans: "о книге" },
+        { q: "Мой брат учится ...", options: ["в школе", "в школу", "на школе"], ans: "в школе" },
+        { q: "Папа работает ...", options: ["в офисе", "в офис", "на офисе"], ans: "в офисе" },
+        { q: "Я вспоминаю ...", options: ["о лете", "о лето", "в лете"], ans: "о лете" },
+        { q: "Она вспоминает ...", options: ["подруге", "подругу", "о подругу"], ans: "подруgu" }, // Correcting key match below
+        { q: "Дети играют ...", options: ["в пианино", "на пианино", "о пианино"], ans: "на пианино" },
+        { q: "Мы играen ...", options: ["в баскетбол", "на баскетболе", "о баскетболе"], ans: "в баскетбол" },
+        { q: "Телефон лежит ...", options: ["в шкафу", "в шкаф", "на шкаф"], ans: "в шкафу" },
+        { q: "Студент учится ...", options: ["в институте", "в институт", "на институте"], ans: "в институте" },
+        { q: "Я спрашиваю маму ...", options: ["о подругу", "о подруге", "в подруге"], ans: "о подруге" },
+        { q: "Друзья работают ...", options: ["в школе", "в школу", "на школе"], ans: "в школе" }
+    ];
+
+    // Fix for specific answer string keys due to internal typos/normalization
+    quizData[3].ans = "в футбол";
+    quizData[13].ans = "подругу";
+
+    const container = document.getElementById('exercise-container');
+
+    quizData.forEach((item, i) => {
+        const card = document.createElement('div');
+        card.className = 'exercise-card';
+        
+        card.innerHTML = `
+            <span class="exercise-header">Aufgabe ${i + 1}</span>
+            <div class="sentence">
+                ${item.q} 
+                <select id="select-${i}" onchange="check(${i})">
+                    <option value="">-- bitte wählen --</option>
+                    ${item.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn-reset" onclick="reset(${i})">Zurücksetzen</button>
+                <button class="btn-solve" onclick="solve(${i})">Lösung anzeigen</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    function check(index) {
+        const el = document.getElementById(`select-${index}`);
+        const val = el.value;
+        if (val === "") {
+            el.className = "";
+        } else if (val === quizData[index].ans) {
+            el.className = "correct";
+        } else {
+            el.className = "incorrect";
+        }
+    }
+
+    function reset(index) {
+        const el = document.getElementById(`select-${index}`);
+        el.value = "";
+        el.className = "";
+    }
+
+    function solve(index) {
+        const el = document.getElementById(`select-${index}`);
+        el.value = quizData[index].ans;
+        el.className = "correct";
+    }
+</script>
+
+</body>
+</html>
